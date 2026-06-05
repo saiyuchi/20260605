@@ -1,46 +1,32 @@
-name: Deploy to GitHub Pages
+name: Deploy Quake Tracker to GitHub Pages
 
-# 設定觸發條件：當程式碼推送到 main 分支時觸發
 on:
   push:
-    branches:
-      - main # 如果你的主要分支叫 master，請改成 master
+    branches: [main]
 
-# 設定 GitHub Actions 的權限，允許它寫入資料到 GitHub Pages
 permissions:
   contents: write
 
 jobs:
-  build-and-deploy:
+  deploy:
     runs-on: ubuntu-latest
-
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
     steps:
-      # 1. 複製 GitHub 上的程式碼到虛擬主機中
-      - name: Checkout 🛎️
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      # 2. 設定 Node.js 環境
-      - name: Set up Node.js ⚙️
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-gpm-version: '8' # 可根據你的專案需求調整 Node 版本
-          cache: 'npm'
+          node-version: '24'
 
-      # 3. 安裝專案依賴套件 (重現 package-lock.json 的狀態)
-      - name: Install dependencies 🔧
-        run: npm ci
+      - name: Install & Build
+        run: |
+          npm install
+          npm run build
 
-      # 4. 執行打包指令 (產生 dist 資料夾)
-      - name: Build project 🚀
-        run: npm run build
-
-      # 5. 將打包好的網頁檔案部署到 gh-pages 分支
-      - name: Deploy 🚀
-        uses: JamesIves/github-pages-deploy-action@v4
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
         with:
-          folder: dist # Vite 打包後的預設資料夾名稱
-          branch: gh-pages # 自動部署到的分支名稱
-
-
-https://saiyuchi.github.io/20260605/
-
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./dist
